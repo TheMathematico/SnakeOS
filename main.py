@@ -1,102 +1,29 @@
 import customtkinter as ctk
+import utility
+from apps import time
+from PIL import Image
 
 ctk.set_appearance_mode("dark")
 
 WIDTH = 1500
 HEIGHT = 920
-TOP_FRAME_HEIGHT = 30
 
 tsk_bar_width = 100
+TOP_FRAME_HEIGHT = 30
+
+photo = Image.open("appdefault.png")
+clock_icon = Image.open("clock_icon.png")
 
 BACKGROUND = "#0B1F1A"
 BACKGROUND_SECONDARY = "#14332A"
 BACKGROUND_HOVER = "#1A3C34"
 
-dragging = None
-offset_x = 0
-offset_y = 0
-
 def on_close():
     root.destroy()
 
-def drag():
-    global dragging
-    global offset_x, offset_y
-
-    if dragging:
-        x, y = root.winfo_pointerxy()
-
-        parent = dragging.master
-
-        parent_x = parent.winfo_rootx()
-        parent_y = parent.winfo_rooty()
-
-        dragging.place(x=x - offset_x - parent_x, y=y - offset_y - parent_y)
-
-    root.after(20, drag)
-
-def start_drag(obj):
-    global dragging
-    global offset_x, offset_y
-
-    x, y = root.winfo_pointerxy()
-
-    if not dragging:
-        dragging = obj
-
-        offset_x = x - dragging.winfo_rootx()
-        offset_y = y - dragging.winfo_rooty()
-    else:
-        dragging = None
-
-def add_button(parent, height, width, text, fontsize, cmd, fg, hc, pad, side):
-    a = ctk.CTkButton(
-        parent, 
-        height=height,
-        width=width,
-        font=("monogram", fontsize),
-        text=text,
-        command=cmd,
-        fg_color=fg,
-        corner_radius=15,
-        hover_color=hc
-    )
-
-    a.pack(padx=pad, pady=0, side=side)
-
-    return a
-
-def create_window(width, height, title, fg):
-    global workspace
-    global TOP_FRAME_HEIGHT
-
-    window = ctk.CTkFrame(workspace, width=width, height=height, fg_color=fg)
-    window.place(x=500, y=300)
-    window.pack_propagate(False)
-
-    top_frame = ctk.CTkFrame(window, 400, TOP_FRAME_HEIGHT, 0, fg_color=BACKGROUND)
-    top_frame.pack(padx=0, pady=0)
-    top_frame.pack_propagate(False)
-    top_frame.bind("<Button-1>", lambda event: start_drag(window))
-
-    title_label = ctk.CTkLabel(top_frame, text=title, font=("monogram", 32))
-    title_label.pack(padx=0, pady=0, side="left")
-
-    close_btn = ctk.CTkButton(
-        top_frame, 
-        35, 
-        TOP_FRAME_HEIGHT, 
-        fg_color="red", 
-        font=("monogram", 32), 
-        text="X", 
-        corner_radius=0,
-        command=lambda: window.destroy()
-    )
-
-    close_btn.pack(padx=0, pady=0, side="right")
-
 root = ctk.CTk(fg_color=BACKGROUND)
 root.geometry(f"{WIDTH}x{HEIGHT}")
+root.title("Snake OS")
 
 taskbar = ctk.CTkFrame(root, width=tsk_bar_width, height=HEIGHT-20, fg_color=BACKGROUND_SECONDARY, corner_radius=15)
 taskbar.place(x=0+10, y=10)
@@ -105,11 +32,20 @@ taskbar.pack_propagate(False)
 workspace = ctk.CTkFrame(root, width=WIDTH-tsk_bar_width-30, height=HEIGHT-20, fg_color=BACKGROUND_SECONDARY, corner_radius=15)
 workspace.place(x=tsk_bar_width + 20, y=10)
 
-close = add_button(taskbar, 80, 5, "shutdown", 16, on_close, BACKGROUND_SECONDARY, BACKGROUND_HOVER, 0, "bottom")
-asjdlasd = add_button(taskbar, 80, 5, "+", 16, lambda: create_window(300, 300, "test", BACKGROUND_HOVER), BACKGROUND_SECONDARY, BACKGROUND_HOVER, 0, "bottom")
+utility.workspace = workspace
+utility.root = root
+utility.TOP_FRAME_HEIGHT = TOP_FRAME_HEIGHT
+utility.BACKGROUND = BACKGROUND
+utility.BACKGROUND_HOVER = BACKGROUND_HOVER
+utility.BACKGROUND_SECONDARY = BACKGROUND_SECONDARY
 
-create_window(400, 400, "test", BACKGROUND_HOVER)
+close = utility.add_button(taskbar, 80, tsk_bar_width-4, "shutdown", 22, on_close, BACKGROUND_SECONDARY, BACKGROUND_HOVER, 10, "bottom")
+asjdlasd = utility.add_button(taskbar, 80, tsk_bar_width-4, "+", 32, lambda: utility.create_window(300, 300, "test", BACKGROUND_HOVER), BACKGROUND_SECONDARY, BACKGROUND_HOVER, 0, "bottom")
 
-drag()
+utility.create_app("time", clock_icon, lambda event: time.open())
+utility.create_app("clicker", photo, lambda event: utility.create_window(100, 200, "clicker", 0))
+utility.create_app("uno", photo, lambda event: utility.create_window(500, 500, "uno", 0))
+
+utility.update_loop()
 
 root.mainloop()
