@@ -4,7 +4,7 @@ import customtkinter as ctk
 
 BACKGROUND = ""
 BACKGROUND_SECONDARY = ""
-BACKGROUND_HOVER = ""
+BACKGROUND_HOVER = "#1A3C34"
 
 dragging = None
 offset_x = 0
@@ -35,13 +35,16 @@ def start_drag(obj):
         dragging = None
 
 def add_button(parent, height, width, text, fontsize, cmd, fg, hc, pad, side):
+    def on_click():
+        cmd()
+
     a = ctk.CTkButton(
         parent, 
         height=height,
         width=width,
         font=("monogram", fontsize),
         text=text,
-        command=cmd,
+        command=on_click,
         fg_color=fg,
         corner_radius=15,
         hover_color=hc
@@ -51,13 +54,10 @@ def add_button(parent, height, width, text, fontsize, cmd, fg, hc, pad, side):
 
     return a
 
-def create_window(width, height, title, fg):
+def create_window(width, height, title, fg = BACKGROUND_HOVER):
     global workspace
     global TOP_FRAME_HEIGHT
     global todo
-
-    if fg == 0:
-        fg = BACKGROUND_HOVER
 
     window = ctk.CTkFrame(workspace, width=width, height=height, fg_color=fg)
     window.place(x=500, y=300)
@@ -78,7 +78,7 @@ def create_window(width, height, title, fg):
         if window.function:
             print(window.function)
             todo.remove(window.function)
-            print("removed.")
+            print("removed.")          
 
     close_btn = ctk.CTkButton(
         top_frame, 
@@ -111,8 +111,14 @@ def create_app(title, pfp, cmd):
     title_label = ctk.CTkLabel(app, text=title, font=("monogram", 24), text_color="white")
     title_label.pack(padx=0, pady=0)
 
-    title_label.bind("<Button-1>", cmd)
-    p.bind("<Button-1>", cmd)
+    def on_click(event):
+
+        print("click")
+
+        cmd(event)
+
+    title_label.bind("<Button-1>", lambda event: on_click(event))
+    p.bind("<Button-1>", lambda event: on_click(event))
 
     apps_offset += 130
 
@@ -133,4 +139,4 @@ def update_loop():
     for v in todo:
         v()
 
-    root.after(20, update_loop)
+    root.after(15, update_loop)
