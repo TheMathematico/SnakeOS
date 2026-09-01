@@ -1,8 +1,9 @@
 #None of the variables here are customizable, if you want to customize them go to main.py
 
 import customtkinter as ctk
+from PIL import Image
 
-BACKGROUND = ""
+BACKGROUND = "#0B1F1A"
 BACKGROUND_SECONDARY = ""
 BACKGROUND_HOVER = "#1A3C34"
 
@@ -12,7 +13,8 @@ offset_y = 0
 
 TOP_FRAME_HEIGHT = 0
 
-apps_offset = 0
+apps_offsetx = 0
+apps_offsety = 0
 
 workspace = None
 root = None
@@ -54,7 +56,7 @@ def add_button(parent, height, width, text, fontsize, cmd, fg, hc, pad, side):
 
     return a
 
-def create_window(width, height, title, fg = BACKGROUND_HOVER):
+def create_window(width, height, title, fg = BACKGROUND_HOVER, top_frame_fg = BACKGROUND):
     global workspace
     global TOP_FRAME_HEIGHT
     global todo
@@ -63,7 +65,7 @@ def create_window(width, height, title, fg = BACKGROUND_HOVER):
     window.place(x=500, y=300)
     window.pack_propagate(False)
 
-    top_frame = ctk.CTkFrame(window, width, TOP_FRAME_HEIGHT, 0, fg_color=BACKGROUND)
+    top_frame = ctk.CTkFrame(window, width, TOP_FRAME_HEIGHT, 0, fg_color=top_frame_fg)
     top_frame.pack(padx=0, pady=0)
     top_frame.pack_propagate(False)
     top_frame.bind("<Button-1>", lambda event: start_drag(window))
@@ -73,6 +75,11 @@ def create_window(width, height, title, fg = BACKGROUND_HOVER):
     title_label.bind("<Button-1>", lambda event: start_drag(window))
 
     def on_close():
+        try:
+            window.on_close()
+        except AttributeError:
+            pass
+
         window.destroy()
 
         if window.function:
@@ -98,15 +105,18 @@ def create_window(width, height, title, fg = BACKGROUND_HOVER):
 
 def create_app(title, pfp, cmd):
     global workspace
-    global apps_offset
+    global apps_offsetx, apps_offsety
+
+    APP_HEIGHT = 120
+    APP_WIDTH = 100
 
     app = ctk.CTkFrame(workspace, width=100, height=120, fg_color="transparent", bg_color="transparent")
-    app.place(x=5, y=5+apps_offset)
+    app.place(x=5+apps_offsetx, y=5+apps_offsety)
 
-    image = ctk.CTkImage(pfp, pfp, (95, 90))
+    image = ctk.CTkImage(pfp, pfp, (APP_WIDTH-5, APP_HEIGHT-30))
 
-    p = ctk.CTkLabel(app, width=95, height=90, text="",  fg_color="transparent", image=image)
-    p.pack(padx=5, pady=5)
+    p = ctk.CTkLabel(app, width=APP_WIDTH-5, height=APP_HEIGHT-30, text="",  fg_color="transparent", image=image)
+    p.pack(padx=5, pady=2)
 
     title_label = ctk.CTkLabel(app, text=title, font=("monogram", 24), text_color="white")
     title_label.pack(padx=0, pady=0)
@@ -120,7 +130,17 @@ def create_app(title, pfp, cmd):
     title_label.bind("<Button-1>", lambda event: on_click(event))
     p.bind("<Button-1>", lambda event: on_click(event))
 
-    apps_offset += 130
+    if workspace != None:
+        if apps_offsety + APP_HEIGHT + 5 <= workspace.winfo_height():
+            apps_offsety += APP_HEIGHT + 10
+        else:
+            apps_offsetx += APP_WIDTH + 5
+            apps_offsety = 0
+
+def to_image(image_path: str, size: tuple = (20,20)):
+    photo = Image.open(image_path)
+
+    return photo
 
 def update_loop():
     global dragging
