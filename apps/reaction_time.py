@@ -14,7 +14,7 @@ def start_test(time, btn, status_label):
 
         def set():
             end = time.monotonic()
-            interval = round(end-start, 2)
+            interval = int(round(end-start, 3) * 1000)
             status_label.configure(text=f"{interval}ms, click to retry")
             btn.configure(fg_color="orange", hover_color="yellow", command=lambda: start_test(time, btn, status_label))
 
