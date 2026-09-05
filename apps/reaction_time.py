@@ -5,7 +5,7 @@ h = 400
 
 def start_test(time, btn, status_label):
     status_label.configure(text="Focus, green=click")
-    btn.configure(fg_color="red", hover_color="red")
+    btn.configure(fg_color="red", hover_color="red", command=None)
 
     #this many funcs inside 1 func seems unclean but being totally honest i don't know any solution
     def test():
