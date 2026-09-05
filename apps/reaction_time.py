@@ -26,7 +26,7 @@ def start_test(time, btn, status_label):
 def open(a, time, utility):
     global w,h
 
-    window = utility.create_window(w, h, "Admin")
+    window = utility.create_window(w, h, "ReTime")
 
     status_label = ctk.CTkLabel(window, text="Click when ready", font=("monogram", 24))
     status_label.pack(padx=0, pady=0)
