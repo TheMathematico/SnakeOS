@@ -1,11 +1,51 @@
 #None of the variables here are customizable, if you want to customize them go to main.py
 
 import customtkinter as ctk
+import time
 from PIL import Image
 
 BACKGROUND = "#0B1F1A"
-BACKGROUND_SECONDARY = ""
+BACKGROUND_SECONDARY = "#14332A"
 BACKGROUND_HOVER = "#1A3C34"
+
+#this is used for making the time label on the taskbar change colors(aka be rainbow)
+colors = [
+    "#134D1D",
+    "#175A21",
+    "#1B6725",
+    "#20752A",
+    "#27842F",
+    "#2E9335",
+    "#36A33C",
+    "#3DB343",
+    "#45C34A",
+    "#4DCE50",
+    "#55D756",
+    "#5DE05C",
+    "#65E762",
+    "#6DED68",
+    "#75F16E",
+    "#7DF474",
+    "#85F77A",
+    "#7DF474",
+    "#75F16E",
+    "#6DED68",
+    "#65E762",
+    "#5DE05C",
+    "#55D756",
+    "#4DCE50",
+    "#45C34A",
+    "#3DB343",
+    "#36A33C",
+    "#2EA335",
+    "#27842F",
+    "#20752A",
+    "#1B6725",
+    "#175A21",
+    "#134D1D",
+]
+counter = 0
+index = 0
 
 dragging = None
 offset_x = 0
@@ -18,6 +58,10 @@ apps_offsety = 0
 
 workspace = None
 root = None
+time_label = None
+
+stupid_clicker_app = False #because it's insanely glitchy dragging any window over the window of the
+                       #clicker app, the clicker app will be lifted everytime a window is created
 
 todo = []#list of functions the apps provide that the update loop in this file loops through and does
 
@@ -36,20 +80,21 @@ def start_drag(obj):
     else:
         dragging = None
 
-def add_button(parent, height, width, text, fontsize, cmd, fg, hc, pad, side):
+def add_button(parent, height, width, text, fontsize = 32, cmd = None, fg=BACKGROUND_SECONDARY, hc=BACKGROUND_HOVER, tc="white", pad=0, side="bottom"):
     def on_click():
         cmd()
 
     a = ctk.CTkButton(
-        parent, 
+        parent,
         height=height,
         width=width,
-        font=("monogram", fontsize),
+        font=("Noto Sans Symbols 2", fontsize),
         text=text,
         command=on_click,
         fg_color=fg,
         corner_radius=15,
-        hover_color=hc
+        hover_color=hc,
+        text_color=tc
     )
 
     a.pack(padx=0, pady=pad, side=side)
@@ -57,13 +102,19 @@ def add_button(parent, height, width, text, fontsize, cmd, fg, hc, pad, side):
     return a
 
 def create_window(width, height, title, fg = BACKGROUND_HOVER, top_frame_fg = BACKGROUND):
-    global workspace
+    global workspace, stupid_clicker_app
     global TOP_FRAME_HEIGHT
     global todo
 
-    window = ctk.CTkFrame(workspace, width=width, height=height, fg_color=fg)
+    window = ctk.CTkFrame(workspace, width=width, height=height, fg_color=fg, corner_radius=0)
     window.place(x=500, y=300)
     window.pack_propagate(False)
+
+    if title == "ZooClicker":
+        stupid_clicker_app = window
+
+    if stupid_clicker_app:
+        stupid_clicker_app.lift()
 
     top_frame = ctk.CTkFrame(window, width, TOP_FRAME_HEIGHT, 0, fg_color=top_frame_fg)
     top_frame.pack(padx=0, pady=0)
@@ -112,10 +163,9 @@ def create_app(title, pfp, cmd):
 
     app = ctk.CTkFrame(workspace, width=100, height=120, fg_color="transparent", bg_color="transparent")
     app.place(x=5+apps_offsetx, y=5+apps_offsety)
-
     image = ctk.CTkImage(pfp, pfp, (APP_WIDTH-5, APP_HEIGHT-30))
 
-    p = ctk.CTkLabel(app, width=APP_WIDTH-5, height=APP_HEIGHT-30, text="",  fg_color="transparent", image=image)
+    p = ctk.CTkLabel(app, width=APP_WIDTH-5, height=APP_HEIGHT-30, text="", image=image)
     p.pack(padx=5, pady=2)
 
     title_label = ctk.CTkLabel(app, text=title, font=("monogram", 24), text_color="white")
@@ -137,14 +187,16 @@ def create_app(title, pfp, cmd):
             apps_offsetx += APP_WIDTH + 5
             apps_offsety = 0
 
-def to_image(image_path: str, size: tuple = (20,20)):
-    photo = Image.open(image_path)
+def to_image(image_path: str, size: tuple = (20,20), prefix: str = "images"):
+    photo = Image.open(f"{prefix}/{image_path}")
 
     return photo
 
 def update_loop():
-    global dragging
+    global dragging, counter, index
     global offset_x, offset_y 
+
+    counter += 1
 
     if dragging:
         x, y = root.winfo_pointerxy()
@@ -159,4 +211,13 @@ def update_loop():
     for v in todo:
         v()
 
-    root.after(15, update_loop)
+    if counter == 5:
+        counter = 0
+        time_label.configure(text=f" {time.strftime("%H:%M:%S")} \n{time.strftime("%Y-%m-%d")[2:]}", text_color=colors[index])
+
+        if len(colors) - 1 != index:
+            index+=1
+        else:
+            index=0
+
+    root.after(25, update_loop)
