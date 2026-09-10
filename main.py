@@ -1,8 +1,7 @@
 import customtkinter as ctk
 import utility
 import time
-from apps import time_app, clicker, admin, notes
-from PIL import Image
+from apps import time_app, clicker, admin, notes, reaction_time
 import pygame #for sound
 
 ctk.set_appearance_mode("dark")
@@ -14,17 +13,18 @@ HEIGHT = 920
 tsk_bar_width = 100
 TOP_FRAME_HEIGHT = 30
 
-photo = Image.open("appdefault.png")
-logo = Image.open("logo.png")
-clock_icon = Image.open("clock.png")
-cursor = Image.open("cursor.png")
-clicker_icon = Image.open("clicker.png")
-admin_icon = Image.open("admin.png")
-folder_icon = Image.open("folder.png")
+photo = utility.to_image("appdefault.png")
+logo = utility.to_image("logo.png")
+clock_icon = utility.to_image("clock.png")
+cursor = utility.to_image("cursor.png")
+clicker_icon = utility.to_image("clicker.png")
+admin_icon = utility.to_image("admin.png")
+notes_icon = utility.to_image("notepad.png")
+retime_icon = utility.to_image("retime.png")
 
-BACKGROUND = "#0B1F1A"
-BACKGROUND_SECONDARY = "#14332A"
-BACKGROUND_HOVER = "#1A3C34"
+BACKGROUND = utility.BACKGROUND
+BACKGROUND_SECONDARY = utility.BACKGROUND_SECONDARY
+BACKGROUND_HOVER = utility.BACKGROUND_HOVER
 
 def on_close():
     root.destroy()
@@ -33,7 +33,8 @@ root = ctk.CTk(fg_color=BACKGROUND)
 root.geometry(f"{WIDTH}x{HEIGHT}")
 root.title("Snake OS")
 
-click_sound = pygame.mixer.Sound("click.mp3")
+click_sound = pygame.mixer.Sound("sounds/click.mp3")
+click_sound.set_volume(0.25)
 
 def on_click(event):
     click_sound.play()
@@ -54,17 +55,20 @@ workspace.update_idletasks() #This line is here so that ctk calculates the geome
 utility.workspace = workspace
 utility.root = root
 utility.TOP_FRAME_HEIGHT = TOP_FRAME_HEIGHT
-utility.BACKGROUND = BACKGROUND
-#background_hover isn't assigned because it is already assigned in utility
-utility.BACKGROUND_SECONDARY = BACKGROUND_SECONDARY
 
-close = utility.add_button(taskbar, 80, tsk_bar_width-4, "shutdown", 22, on_close, BACKGROUND_SECONDARY, BACKGROUND_HOVER, 10, "bottom")
-asjdlasd = utility.add_button(taskbar, 80, tsk_bar_width-4, "+", 32, lambda: utility.create_window(300, 300, "test", BACKGROUND_HOVER), BACKGROUND_SECONDARY, BACKGROUND_HOVER, 0, "bottom")
+#taskbar related widgets
+close = utility.add_button(taskbar, 40, tsk_bar_width-4, "⏻", 22, on_close, pad=10, tc="green")
 
-utility.create_app("Time", clock_icon, lambda event: time_app.open(utility, ctk, time))
+time_label = ctk.CTkLabel(taskbar, text="00:00", font=("monogram", 24))
+time_label.pack(padx=0, pady=10)
+utility.time_label = time_label
+
+#workspace related apps
+utility.create_app("Time", clock_icon, lambda event: time_app.open(utility, ctk))
 utility.create_app("ZooClicker", clicker_icon, lambda event: clicker.open(cursor, BACKGROUND_SECONDARY, ctk, utility))
 utility.create_app("Admin", admin_icon, lambda event: admin.open(clicker, ctk, utility))
-utility.create_app("Notes", admin_icon, lambda event: notes.open(ctk, utility))
+utility.create_app("Notes", notes_icon, lambda event: notes.open(ctk, utility))
+utility.create_app("ReTime", retime_icon, lambda event: reaction_time.open(ctk, time, utility))
 
 utility.update_loop()
 
