@@ -1,7 +1,3 @@
-import customtkinter as ctk
-import utility
-import time
-
 # for functions, fg, bg are the main colors and when an s is added(e.g. fgs) 
 # that means its a secondary color(e.g ForeGroundSecondary = fgs)
 
@@ -30,7 +26,7 @@ def update():
 
     clicks_label0.configure(text=str(clicks))
 
-def create_upgrade_section(image, title, cap, clicksgive, price, parent, image_size=(65, 65), w=500, h=120, fg="#14332A", fgs="#14332A", pad_x=5, pad_y=5):
+def create_upgrade_section(image, title, cap, clicksgive, price, parent, ctk, utility, image_size=(65, 65), w=500, h=120, fg="#14332A", fgs="#14332A", pad_x=5, pad_y=5):
     global sections
 
     if not title in sections:
@@ -46,31 +42,27 @@ def create_upgrade_section(image, title, cap, clicksgive, price, parent, image_s
     top_frame.pack(padx=0, pady=0, side="top")
     top_frame.pack_propagate(False)
 
-    showcase = ctk.CTkScrollableFrame(frame, orientation="horizontal", width=w-35, height=120, fg_color=fg)
-    showcase.pack(padx=5, pady=5, side="bottom")
-
     title_label = ctk.CTkLabel(top_frame, text=title, font=("monogram", 20), height=20)
     title_label.pack(padx=5, pady=0, side="left")
 
     amount_label = ctk.CTkLabel(top_frame, text=f"0/{cap}", font=("monogram", 20), height=20)
     amount_label.pack(padx=5, pady=0, side="left")
 
-    def createPuppet():
+    def createPuppet(ctk, utility):
         nonlocal amount_label
         nonlocal price_offset
 
         to_image = utility.to_image(image, image_size)
         photo = ctk.CTkImage(to_image, to_image, image_size)
 
-        puppet = ctk.CTkLabel(showcase, text="", image=photo, width=100, height=70)
-        puppet.pack(padx=5, pady=0, side="left")
+        puppet = ctk.CTkLabel(frame, text="", image=photo, width=100, height=70)
+        puppet.pack(padx=5, pady=0, anchor="sw")
 
         puppet.image = photo
 
         amount_label.configure(text=f"{sections[title]}/{cap}")
 
-    for i in range(sections[title]):
-        createPuppet()
+    createPuppet(ctk, utility)
 
     def on_click():
         nonlocal buy_btn
@@ -78,13 +70,15 @@ def create_upgrade_section(image, title, cap, clicksgive, price, parent, image_s
         global clicks
         global clicks_add
 
-        if clicks >= price + price_offset and sections[title] <= cap:
+        if clicks >= price + price_offset and sections[title] < cap:
             sections[title] += 1
-            createPuppet()
 
             price_offset += (price + price_offset) / 10
             clicks -= price
             clicks_add += clicksgive
+
+            amount_label.configure(text=f"{sections[title]}/{cap}")
+            buy_btn.configure(text=f"BUY({int(price + price_offset)})")
         else:
             buy_btn.configure(fg_color="red", hover_color="red")
             frame.after(200, lambda: buy_btn.configure(fg_color="green", hover_color=fgs))
@@ -101,13 +95,17 @@ def create_upgrade_section(image, title, cap, clicksgive, price, parent, image_s
     )
     buy_btn.pack(padx=5, pady=0, side="left")
 
-def open(cursor, bgs):
+def open(cursor, bgs, ctk, utility):
     if update not in utility.todo:
         global clicks_label0
         global w, h
 
+        def on_close():
+            utility.stupid_clicker_app = False
+
         window = utility.create_window(w, h, "ZooClicker")
         window.function = update
+        window.on_close = on_close
         print(window)
 
         image = ctk.CTkImage(cursor, cursor, (50, 50))
@@ -138,17 +136,13 @@ def open(cursor, bgs):
 
         clicks_label0 = clicks_label
 
-        start = time.perf_counter()
-
-        create_upgrade_section("cursor.png", "Cursors", cap=20, clicksgive=1, price=30, parent=upgrades_frame)
-        create_upgrade_section("ant.png", "ants", cap=20, clicksgive=2, price=50, parent=upgrades_frame)
-        create_upgrade_section("snail.png", "snails", cap=20, clicksgive=3, price=150, parent=upgrades_frame)
-        create_upgrade_section("gecko.png", "geckos", cap=20, clicksgive=5, price=300, parent=upgrades_frame)
-        create_upgrade_section("frog.png", "frogs", cap=20, clicksgive=7, price=500, parent=upgrades_frame)
-        create_upgrade_section("fish.png", "fish", cap=20, clicksgive=9, price=1000, parent=upgrades_frame)
-        create_upgrade_section("pigeon.png", "pigeons", cap=20, clicksgive=12, price=3000, parent=upgrades_frame)
-
-        print("UPGRADES:", time.perf_counter() - start)
+        create_upgrade_section("cursor.png", "Cursors", cap=20, clicksgive=1, price=30, parent=upgrades_frame, ctk=ctk, utility=utility)
+        create_upgrade_section("ant.png", "ants", cap=20, clicksgive=2, price=50, parent=upgrades_frame, ctk=ctk, utility=utility)
+        create_upgrade_section("snail.png", "snails", cap=20, clicksgive=3, price=150, parent=upgrades_frame, ctk=ctk, utility=utility)
+        create_upgrade_section("gecko.png", "geckos", cap=20, clicksgive=5, price=300, parent=upgrades_frame, ctk=ctk, utility=utility)
+        create_upgrade_section("frog.png", "frogs", cap=20, clicksgive=7, price=500, parent=upgrades_frame, ctk=ctk, utility=utility)
+        create_upgrade_section("fish.png", "fish", cap=20, clicksgive=9, price=1000, parent=upgrades_frame, ctk=ctk, utility=utility)
+        create_upgrade_section("pigeon.png", "pigeons", cap=20, clicksgive=12, price=3000, parent=upgrades_frame, ctk=ctk, utility=utility)  
 
         utility.todo.append(update)
 
