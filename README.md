@@ -2,6 +2,8 @@
 
 A tiny fake os coded in python :)
 
+![all the apps and the os](pic.PNG)
+
 ### Apps:
 1. Time: self explanatory, doesn't show date!
 2. ZooClicker: cool lil clicker game
